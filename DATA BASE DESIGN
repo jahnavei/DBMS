@@ -1,0 +1,151 @@
+DATABASE DESIGN
+
+
+1.	Entity Name:  Aircraft
+
+Attributes	Type
+AircraftID	          int
+Model	          varchar(50)
+Capacity	int
+Manufacturer	varchar(50)
+YearOfManufacture	int
+
+
+2.	Entity Name:  Seat
+
+Attributes	Type
+SeatId	int
+      AircraftId	varchar(5)
+  SeatNumber	varchar(20)
+Availability	bit
+
+
+3.	Entity Name:  Airline
+
+Attributes	Type
+AirlineID	int
+Name	varchar(50)
+          Country 	varchar(50)
+IATA_CODE	varchar(5)
+ICAO_CODE	varchar(5)
+
+
+4.	Entity Name:  Passenger
+
+Attributes	Type
+PassengerId	Int
+          Name	Varchar(50)
+DOB	Date
+PassportNumber	Varchar(20)
+Nationality	Varchar(50)
+
+
+5.	Entity Name:  Flight
+
+Attributes	Type
+FlightID	int
+AirlineID	Int
+AircraftID	Int
+Source	varchar(50)
+Destination	varchar(50)
+DepartureTime	Datetime
+ArrivalTime	Datetime
+Status	Varchar(20)
+
+
+
+6.	Entity Name:  Payment
+
+Attributes	Type
+PaymentID	int
+PassengerID	int
+Amount	Decimal(10,2)
+PaymentMethod	varchar(20)
+PaymentDate	Date
+	
+
+7.	Entity Name:  Ticket
+
+Attributes	Type
+TicketID	int(10)
+PassengerID	int(10)
+FlightID	int(10)
+SeatID	int(10)
+Class	Varchar(20)
+Price	Decimal(10,2)
+	
+
+8.	Entity Name:  Booking
+
+Attributes	Type
+BookingID	int
+PassengerID	Int
+FlightId	Int
+BookingDate	Date 
+Status	varchar(20)
+
+
+9.	Entity Name:  Crew
+
+Attributes	Type
+CrewId	int(10)
+Name	Varchar(50)
+Role	Varchar(30)
+FlightID	int
+
+10.	Entity Name:  baggage
+
+Attributes	Type
+BaggageID	Int
+passengerID	Int
+Weight	Decimal(5,2)
+TagNumber	           Varchar(20)
+Status	varchar(20)
+FlightID	int
+
+
+11.	Entity Name:  CheckIn
+
+Attributes	Type
+CheckInID	int
+passengerID	Int
+FlightID	Int
+SeatNumber	Varchar(5)
+CheckInTime	DateTime
+
+
+12.	Entity Name:  Meal
+
+Attributes	Type
+MealID	int
+PassengerID	Int
+FlightID	int
+MealType	varchar(20)
+SpecialRequest	Varchar(50)
+13.Entity Name: SecurityCheck
+
+Attributes	Type
+SecurityID	Int
+PassengerID	Int
+FlightID	Int
+Status	Varchar(20)
+TimeChecked	DateTime
+
+14.	Entity Name: BoardingPass
+
+Attributes	Type
+BoardingPassID	Int
+PassengerID	Int
+FlightID	Int
+GateNumber	Varchar(5)
+BoardingTime	DateTime
+
+15.	Entity Name: FlightSchedule
+
+Attributes	Type
+FlightID	Int
+Airline	Varchar(50)
+DepartureCity	Varchar(50)
+ArrivalCity	Varchar(50)
+DepartureTime	DateTime
+ArrivalTime	DateTime
