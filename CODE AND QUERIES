@@ -1,0 +1,965 @@
+CREATE DATABASE AirlinesReservation;
+
+USE AirlinesReservation;
+--Aircraft table
+CREATE TABLE Aircraft (
+    AircraftID INT PRIMARY KEY,
+    Model VARCHAR(50),
+    Capacity INT,
+    Manufacturer VARCHAR(50),
+    YearOfManufacture INT
+);
+
+INSERT INTO Aircraft VALUES 
+(1, 'Boeing 737', 180, 'Boeing', 2018),
+(2, 'Airbus A320', 160, 'Airbus', 2019),
+(3, 'Boeing 777', 396, 'Boeing', 2015),
+(4, 'Embraer E190', 100, 'Embraer', 2020),
+
+--seat table
+CREATE TABLE Seat (
+    SeatID INT PRIMARY KEY,
+    AircraftID INT,
+    SeatNumber VARCHAR(5),
+    Class VARCHAR(20),
+    Availability BIT,
+    FOREIGN KEY (AircraftID) REFERENCES Aircraft(AircraftID)
+);
+
+INSERT INTO Seat VALUES
+(1, 1, '1A', 'Business', 1),
+(2, 1, '12C', 'Economy', 1),
+(3, 2, '5D', 'Business', 0),
+(4, 3, '20F', 'Economy', 1),
+
+--Airline table
+CREATE TABLE Airline (
+    AirlineID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Country VARCHAR(50),
+    IATA_Code VARCHAR(5),
+    ICAO_Code VARCHAR(5)
+);
+
+INSERT INTO Airline VALUES 
+(1, 'American Airlines', 'USA', 'AA', 'AAL'),
+(2, 'Delta Airlines', 'USA', 'DL', 'DAL'),
+(3, 'British Airways', 'UK', 'BA', 'BAW'),
+(4, 'Emirates', 'UAE', 'EK', 'UAE'),
+
+--Passenger table
+CREATE TABLE Passenger (
+    PassengerID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    DOB DATE,
+    PassportNumber VARCHAR(20),
+    Nationality VARCHAR(50)
+);
+
+INSERT INTO Passenger VALUES
+(1, 'John Doe', '1985-04-12', 'P12345678', 'USA'),
+(2, 'Jane Smith', '1992-06-25', 'P87654321', 'UK'),
+(3, 'Ahmed Ali', '1990-09-10', 'P56781234', 'UAE'),
+(4, 'Maria Gonzalez', '1988-11-03', 'P11223344', 'Spain'),
+
+--Flight Table  
+CREATE TABLE Flight (
+    FlightID INT PRIMARY KEY,
+    AirlineID INT,
+    AircraftID INT,
+    Source VARCHAR(50),
+    Destination VARCHAR(50),
+    DepartureTime DATETIME,
+    ArrivalTime DATETIME,
+    Status VARCHAR(20),
+    FOREIGN KEY (AirlineID) REFERENCES Airline(AirlineID),
+    FOREIGN KEY (AircraftID) REFERENCES Aircraft(AircraftID)
+);
+
+INSERT INTO Flight VALUES
+(1, 1, 1, 'New York', 'Los Angeles', '2025-03-15 08:00:00', '2025-03-15 11:00:00', 'Scheduled'),
+(2, 2, 2, 'London', 'Paris', '2025-03-16 09:30:00', '2025-03-16 10:45:00', 'Scheduled'),
+(3, 3, 3, 'Dubai', 'Tokyo', '2025-03-17 15:00:00', '2025-03-18 05:00:00', 'Scheduled'),
+(4, 4, 4, 'Berlin', 'Amsterdam', '2025-03-18 12:00:00', '2025-03-18 13:30:00', 'Scheduled'),
+
+--Payment Table 
+CREATE TABLE Payment (
+    PaymentID INT PRIMARY KEY,
+    PassengerID INT,
+    Amount DECIMAL(10,2),
+    PaymentMethod VARCHAR(20),
+    PaymentDate DATE,
+    FOREIGN KEY (PassengerID) REFERENCES Passenger(PassengerID)
+);
+
+INSERT INTO Payment VALUES
+(1, 1, 500.00, 'Credit Card', '2025-03-01'),
+(2, 2, 250.00, 'Debit Card', '2025-03-02'),
+(3, 3, 700.00, 'PayPal', '2025-03-03'),
+(4, 4, 300.00, 'Credit Card', '2025-03-04'),
+
+--Ticket Table
+CREATE TABLE Ticket (
+    TicketID INT PRIMARY KEY,
+    PassengerID INT,
+    FlightID INT,
+    SeatID INT,
+    Class VARCHAR(20),
+    Price DECIMAL(10,2),
+    FOREIGN KEY (PassengerID) REFERENCES Passenger(PassengerID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID),
+    FOREIGN KEY (SeatID) REFERENCES Seat(SeatID)
+);
+
+INSERT INTO Ticket VALUES
+(1, 1, 1, 1, 'Business', 500.00),
+(2, 2, 2, 2, 'Economy', 250.00),
+(3, 3, 3, 3, 'Business', 700.00),
+(4, 4, 4, 4, 'Economy', 300.00),
+
+--Booking table
+CREATE TABLE Booking (
+    BookingID INT PRIMARY KEY,
+    PassengerID INT NOT NULL,
+    FlightID INT NOT NULL,
+    BookingDate DATE NOT NULL,
+    Status VARCHAR(20) NOT NULL,
+    CONSTRAINT FK_Passenger_Booking FOREIGN KEY (PassengerID) REFERENCES Passenger(PassengerID),
+    CONSTRAINT FK_Flight_Booking FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
+);
+
+INSERT INTO Booking VALUES
+(1, 1, 1, '2025-03-01', 'Confirmed'),
+(2, 2, 2, '2025-03-02', 'Confirmed'),
+(3, 3, 3, '2025-03-03', 'Pending'),
+(4, 4, 4, '2025-03-04', 'Cancelled'),
+
+CREATE TABLE Crew (
+    CrewID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Role VARCHAR(30),
+    FlightID INT,
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
+);
+
+INSERT INTO Crew VALUES
+(1, 'Mike Johnson', 'Pilot', 1),
+(2, 'Sarah Lee', 'Co-Pilot', 1),
+(3, 'Tom Brown', 'Flight Attendant', 2),
+(4, 'Emily Davis', 'Flight Attendant', 3),
+
+CREATE TABLE Baggage (
+    BaggageID INT PRIMARY KEY,
+    PassengerID INT,
+    Weight DECIMAL(5,2),
+    TagNumber VARCHAR(20),
+    Status VARCHAR(20) CHECK (Status IN ('Checked-in', 'Loaded', 'Lost', 'Delayed')),
+    FlightID INT,
+    FOREIGN KEY (PassengerID) REFERENCES Passenger(PassengerID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
+);
+
+INSERT INTO Baggage (BaggageID, PassengerID, Weight, TagNumber, Status, FlightID) VALUES
+(1, 1, 23.5, 'TAG123', 'Checked-in', 1),
+(2, 2, 19.8, 'TAG456', 'Loaded', 2),
+(3, 3, 25.0, 'TAG789', 'Lost', 3),
+(4, 4, 20.3, 'TAG101', 'Checked-in', 4),
+
+CREATE TABLE CheckIn (
+    CheckInID INT PRIMARY KEY,
+    PassengerID INT,
+    FlightID INT,
+    SeatNumber VARCHAR(5),
+    CheckInTime DATETIME,
+    FOREIGN KEY (PassengerID) REFERENCES Passenger(PassengerID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
+);
+
+INSERT INTO CheckIn (CheckInID, PassengerID, FlightID, SeatNumber, CheckInTime) VALUES
+(1, 1, 1, '12A', '2025-03-12 08:30:00'),
+(2, 2, 2, '15B', '2025-03-12 09:00:00'),
+(3, 3, 3, '18C', '2025-03-12 09:15:00'),
+(4, 4, 4, '20D', '2025-03-12 09:45:00'),
+(5, 5, 5, '22E', '2025-03-12 10:00:00'),
+(6, 6, 6, '24A', '2025-03-13 08:45:00'),
+CREATE TABLE Meal (
+    MealID INT PRIMARY KEY,
+    PassengerID INT,
+    FlightID INT,
+    MealType VARCHAR(20) CHECK (MealType IN ('Vegetarian', 'Non-Vegetarian', 'Vegan', 'Gluten-Free', 'Standard')),
+    SpecialRequest VARCHAR(50),
+    FOREIGN KEY (PassengerID) REFERENCES Passenger(PassengerID),
+    FOREIGN KEY (FlightID) REFERENCES Flight(FlightID)
+);
+
+INSERT INTO Meal (MealID, PassengerID, FlightID, MealType, SpecialRequest) VALUES
+(1, 1, 1, 'Vegetarian', 'No nuts'),
+(2, 2, 2, 'Non-Vegetarian', 'Extra chicken'),
+(3, 3, 3, 'Vegan', 'Soy milk only'),
+(4, 4, 4, 'Gluten-Free', 'No bread'),
+
+
+CREATE TABLE SecurityCheck (
+    SecurityID INT PRIMARY KEY,
+    PassengerID INT,
+    FlightID INT,
+    Status VARCHAR(20) CHECK (Status IN ('Passed', 'Pending', 'Failed')),
+    TimeChecked DATETIME
+);
+
+INSERT INTO SecurityCheck (SecurityID, PassengerID, FlightID, Status, TimeChecked) VALUES
+(1, 101, 5001, 'Passed', '2025-03-12 08:45:00'),
+(2, 102, 5002, 'Passed', '2025-03-12 09:10:00'),
+(3, 103, 5003, 'Pending', NULL),
+(4, 104, 5004, 'Passed', '2025-03-12 09:50:00'),
+
+CREATE TABLE BoardingPass(
+    BoardingPassID INT PRIMARY KEY,
+    PassengerID INT,
+    FlightID INT,
+    GateNumber VARCHAR(5),
+    BoardingTime DATETIME
+);
+
+INSERT INTO BoardingPass (BoardingPassID, PassengerID, FlightID, GateNumber, BoardingTime) VALUES
+(1, 101, 5001, 'A12', '2025-03-12 09:00:00'),
+(2, 102, 5002, 'B15', '2025-03-12 09:30:00'),
+(3, 103, 5003, 'C18', '2025-03-12 09:45:00'),
+(4, 104, 5004, 'D20', '2025-03-12 10:15:00'),
+
+CREATE TABLE FlightSchedule (
+    FlightID INT PRIMARY KEY,
+    Airline VARCHAR(50),
+    DepartureCity VARCHAR(50),
+    ArrivalCity VARCHAR(50),
+    DepartureTime DATETIME,
+    ArrivalTime DATETIME
+);
+
+INSERT INTO FlightSchedule (FlightID, Airline, DepartureCity, ArrivalCity, DepartureTime, ArrivalTime) VALUES
+(5001, 'Airline A', 'New York', 'Los Angeles', '2025-03-12 10:00:00', '2025-03-12 13:00:00'),
+(5002, 'Airline B', 'Chicago', 'Miami', '2025-03-12 11:00:00', '2025-03-12 14:30:00'),
+(5003, 'Airline C', 'San Francisco', 'Seattle', '2025-03-12 12:00:00', '2025-03-12 14:00:00'),
+(5004, 'Airline D', 'Boston', 'Denver', '2025-03-12 13:30:00', '2025-03-12 16:30:00'),
+
+QUERIES:
+
+--1.Update the capacity of the 'Boeing 737' aircraft to 185.
+UPDATE Aircraft
+SET Capacity = 185
+WHERE Model = 'Boeing 737';
+select * from Aircraft
+
+--2.Update the status of the flight from 'New York' to 'Los Angeles' to 'Delayed'.
+UPDATE Flight
+SET Status = 'Delayed'
+WHERE Source = 'New York' AND Destination = 'Los Angeles';
+select * from Flight
+	
+--3.Add a new column 'PhoneNumber' to the 'Passenger' table.
+ALTER TABLE Passenger
+ADD PhoneNumber VARCHAR(15);
+select * from Passenger
+
+--4.Add a new column 'Email' to the 'Passenger' table.
+ALTER TABLE Passenger
+ADD Email VARCHAR(100);
+select * from Passenger
+
+--5.Update the availability of seat '12C' in the 'Airbus A320' aircraft to unavailable.
+UPDATE Seat
+SET Availability = 0
+WHERE SeatNumber = '12C' AND AircraftID = (SELECT AircraftID FROM Aircraft WHERE Model = 'Airbus A320');
+select * from Seat
+
+--6.Drop the 'SpecialRequest' column from the 'Meal' table.
+ALTER TABLE Meal
+DROP COLUMN SpecialRequest;
+select * from meal
+
+--7.Find the maximum capacity of all aircrafts.
+SELECT MAX(Capacity) AS MaxCapacity FROM Aircraft;
+
+-- 8. Retrieve all aircraft details
+SELECT * FROM Aircraft;
+
+-- 9. Retrieve all seats that are available
+SELECT * FROM Seat WHERE Availability = 1;
+
+-- 10. Get all flights scheduled on '2025-03-15'
+SELECT * FROM Flight WHERE CAST(DepartureTime AS DATE) = '2025-03-15';
+
+-- 11. Get the names of passengers who have booked a flight
+SELECT Name FROM Passenger WHERE PassengerID IN (SELECT PassengerID FROM Booking);
+
+-- 12. List all the airlines based in the USA
+SELECT * FROM Airline WHERE Country = 'USA';
+ouput: /*
+AirlineID	Name	Country	IATA_Code	ICAO_Code
+1	American Airlines	USA	AA	AAL
+2	Delta Airlines	USA	DL	DAL
+*/
+
+
+
+-- 13. Retrieve all flights along with the airline name
+SELECT F.*, A.Name AS AirlineName
+FROM Flight F
+JOIN Airline A ON F.AirlineID = A.AirlineID;
+
+-- 14. Find the total capacity of all aircrafts
+SELECT SUM(Capacity) AS TotalCapacity FROM Aircraft;
+
+
+-- 15. Get the list of passengers who have paid more than $500
+SELECT Name FROM Passenger WHERE PassengerID IN (SELECT PassengerID FROM Payment WHERE Amount > 500);
+
+--16.Get the minimum payment amount made by passengers.
+SELECT MIN(Amount) AS MinPayment FROM Payment;
+
+-- 17. Retrieve the details of passengers who have a 'Pending' booking status
+SELECT P.*
+FROM Passenger P
+JOIN Booking B ON P.PassengerID = B.PassengerID
+WHERE B.Status = 'Pending';
+
+-- 18. List all the flights along with their departure and arrival cities
+SELECT FlightID, Source AS DepartureCity, Destination AS ArrivalCity FROM Flight;
+
+
+-- 19. Find the number of seats available in each class (Business and Economy)
+SELECT Class, COUNT(*) AS AvailableSeats
+FROM Seat
+WHERE Availability = 1
+GROUP BY Class;
+
+-- 20. Get the details of all the engineers in the crew
+SELECT * FROM Crew WHERE Role = 'Engineer';
+
+-- 21. Find the average payment amount made by passengers
+SELECT AVG(Amount) AS AveragePayment FROM Payment;
+
+
+-- 22. List all flights and their corresponding aircraft models
+SELECT F.FlightID, A.Model AS AircraftModel
+FROM Flight F
+JOIN Aircraft A ON F.AircraftID = A.AircraftID;
+
+
+-- 23. Retrieve the details of flights that have 'Scheduled' status
+SELECT * FROM Flight WHERE Status = 'Scheduled';
+
+--24.Find the average weight of baggage for each flight
+SELECT FlightID, AVG(Weight) AS AverageBaggageWeight
+FROM Baggage
+GROUP BY FlightID;
+
+-- 25. Get the list of passengers along with their nationality
+SELECT Name, Nationality FROM Passenger;
+
+--26.Retrieve all passengers whose names start with 'J'.
+SELECT * FROM Passenger
+WHERE Name LIKE 'J%';
+
+
+-- 27. Find the total weight of baggage for each flight
+SELECT FlightID, SUM(Weight) AS TotalBaggageWeight
+FROM Baggage
+GROUP BY FlightID;
+
+--28.Find all flights with destinations that contain 'York'.
+SELECT * FROM Flight
+WHERE Destination LIKE '%York%';
+--29.List all airlines with names that end with 'Airways'
+SELECT * FROM Airline
+WHERE Name LIKE '%Airways';
+
+-- 30. Get the details of passengers who have checked in
+SELECT P.*
+FROM Passenger P
+JOIN CheckIn C ON P.PassengerID = C.PassengerID;
+
+-- 31. Find the flights that have more than 2 crew members
+SELECT FlightID, COUNT(*) AS CrewCount
+FROM Crew
+GROUP BY FlightID
+HAVING COUNT(*) > 2;
+
+-- 32. Get the details of flights departing from 'New York'
+SELECT * FROM Flight WHERE Source = 'New York';
+
+-- 33. Retrieve the details of passengers who have 'Failed' the security check
+SELECT P.*
+FROM Passenger P
+JOIN SecurityCheck S ON P.PassengerID = S.PassengerID
+WHERE S.Status = 'Failed';
+
+-- 34. Find the total number of flights for each airline
+SELECT AirlineID, COUNT(*) AS TotalFlights
+FROM Flight
+GROUP BY AirlineID;
+
+
+--35.List all passengers who have booked a flight with 'Emirates'.
+SELECT * FROM Passenger
+WHERE PassengerID IN (SELECT PassengerID FROM Booking WHERE FlightID IN (SELECT FlightID FROM Flight WHERE AirlineID = (SELECT AirlineID FROM Airline WHERE Name = 'Emirates')));
+
+--36.Find all flights operated by aircrafts manufactured by 'Boeing'.
+SELECT * FROM Flight
+WHERE AircraftID IN (SELECT AircraftID FROM Aircraft WHERE Manufacturer = 'Boeing');
+
+--37.Retrieve the details of passengers who have a 'Vegetarian' meal preference.
+SELECT * FROM Passenger
+WHERE PassengerID IN (SELECT PassengerID FROM Meal WHERE MealType = 'Vegetarian');
+
+-- 38. Get the list of aircraft models manufactured by 'Boeing'
+SELECT Model FROM Aircraft WHERE Manufacturer = 'Boeing';
+
+--39.List all flights that have more than 2 crew members.
+SELECT FlightID, COUNT(*) AS CrewCount
+FROM Crew
+GROUP BY FlightID
+HAVING COUNT(*) > 2;
+
+--40.Find airlines that operate more than 2 flights.
+SELECT AirlineID, COUNT(*) AS TotalFlights
+FROM Flight
+GROUP BY AirlineID
+HAVING COUNT(*) > 2;
+
+--41.Get all aircraft models that have more than 1 seat with availability.
+SELECT AircraftID, COUNT(*) AS AvailableSeats
+FROM Seat
+WHERE Availability = 1
+GROUP BY AircraftID
+HAVING COUNT(*) > 1;
+
+-- 42. Retrieve the details of flights that depart after '2025-03-20 00:00:00'
+SELECT * FROM Flight WHERE DepartureTime > '2025-03-20 00:00:00';
+
+-- 43. List all the passengers along with their passport numbers
+SELECT Name, PassportNumber FROM Passenger;
+
+-- 44. Get the details of flights arriving in 'Tokyo'
+SELECT * FROM Flight WHERE Destination = 'Tokyo';
+
+-- 45. List all the seats that are in 'Economy' class
+SELECT * FROM Seat WHERE Class = 'Economy';
+
+-- 46. Retrieve the details of the crew members for flight ID 1
+SELECT * FROM Crew WHERE FlightID = 1;
+
+
+-- 47. Find the average capacity of all aircrafts
+SELECT AVG(Capacity) AS AverageCapacity FROM Aircraft;
+
+-- 48. Get the details of passengers who have 'Vegetarian' meal preference
+SELECT P.*
+FROM Passenger P
+JOIN Meal M ON P.PassengerID = M.PassengerID
+WHERE M.MealType = 'Vegetarian';
+
+
+-- 49. List all the flights along with their departure and arrival times
+SELECT FlightID, DepartureTime, ArrivalTime FROM Flight;
+
+-- 50. Retrieve the details of passengers who have a 'Confirmed' booking status
+SELECT P.*
+FROM Passenger P
+JOIN Booking B ON P.PassengerID = B.PassengerID
+WHERE B.Status = 'Confirmed';
+
+-- 51. Find the total number of seats available on each aircraft
+SELECT AircraftID, COUNT(*) AS AvailableSeats
+FROM Seat
+WHERE Availability = 1
+GROUP BY AircraftID;
+
+-- 52. Find the total number of passengers for each nationality
+SELECT Nationality, COUNT(*) AS TotalPassengers
+FROM Passenger
+GROUP BY Nationality;
+
+-- 53. Get the details of flights that have 'Pending' booking status
+SELECT F.*
+FROM Flight F
+JOIN Booking B ON F.FlightID = B.FlightID
+WHERE B.Status = 'Pending';
+-- 54. Find the total number of flights for each destination city
+SELECT Destination, COUNT(*) AS TotalFlights
+FROM Flight
+GROUP BY Destination;
+
+-- 55. Get the details of passengers who have 'Non-Vegetarian' meal preference
+SELECT P.*
+FROM Passenger P
+JOIN Meal M ON P.PassengerID = M.PassengerID
+WHERE M.MealType = 'Non-Vegetarian';
+
+-- 56. List all the flights along with their departure and arrival cities
+SELECT FlightID, Source AS DepartureCity, Destination AS ArrivalCity FROM Flight;
+
+-- 57. Retrieve the details of passengers who have a 'Cancelled' booking status
+SELECT P.*
+FROM Passenger P
+JOIN Booking B ON P.PassengerID = B.PassengerID
+WHERE B.Status = 'Cancelled';
+
+
+-- 58. Find the total number of seats in each class (Business and Economy)
+SELECT Class, COUNT(*) AS TotalSeats
+FROM Seat
+GROUP BY Class;
+
+-- 59. Find the total number of passengers with each nationality
+SELECT Nationality, COUNT(*) AS TotalPassengers
+FROM Passenger
+GROUP BY Nationality;
+
+
+-- 60. Get the details of flights that have 'Confirmed' booking status
+SELECT F.*
+FROM Flight F
+JOIN Booking B ON F.FlightID = B.FlightID
+WHERE B.Status = 'Confirmed';
+	
+
+-- 61. Get the details of passengers who have 'Vegan' meal preference
+SELECT P.*
+FROM Passenger P
+JOIN Meal M ON P.PassengerID = M.PassengerID
+WHERE M.MealType = 'Vegan';
+
+-- 62. Retrieve the details of passengers who have a 'Pending' booking status
+SELECT P.*
+FROM Passenger P
+JOIN Booking B ON P.PassengerID = B.PassengerID
+WHERE B.Status = 'Pending';
+
+-- 63. Find the total number of seats available in each class (Business and Economy)
+SELECT Class, COUNT(*) AS AvailableSeats
+FROM Seat
+WHERE Availability = 1
+GROUP BY Class;
+
+-- 64: Find all seats in 'Business' class across all aircraft.
+SELECT * FROM Seat WHERE Class = 'Business';
+
+-- 65: Retrieve all flights departing from 'New York'.
+SELECT * FROM Flight WHERE Source = 'New York';
+
+-- 66: List all passengers who have 'USA' nationality.
+SELECT * FROM Passenger WHERE Nationality = 'USA';
+
+-- 67: Display all payments made using 'Credit Card'.
+SELECT * FROM Payment WHERE PaymentMethod = 'Credit Card';
+
+--  68: Find all flights operated by 'American Airlines'.
+SELECT * FROM Flight WHERE AirlineID = (SELECT AirlineID FROM Airline WHERE Name = 'American Airlines');
+
+--  69: List all passengers who have a 'Confirmed' booking status.
+SELECT * FROM Passenger WHERE PassengerID IN (SELECT PassengerID FROM Booking WHERE Status = 'Confirmed');
+
+-- 70: Find all crew members assigned to FlightID 1.
+SELECT * FROM Crew WHERE FlightID = 1;
+
+--  71: Retrieve all baggage that has a 'Lost' status.
+SELECT * FROM Baggage WHERE Status = 'Lost';
+
+-- 72: List all security checks that have 'Passed' status.
+SELECT * FROM SecurityCheck WHERE Status = 'Passed';
+
+--  73: Find all meals that have 'Vegetarian' meal type.
+SELECT * FROM Meal WHERE MealType = 'Vegetarian';
+
+--  74: Display the names and passport numbers of all passengers.
+SELECT Name, PassportNumber FROM Passenger;
+
+--  75: List all flights that are 'Scheduled'.
+SELECT * FROM Flight WHERE Status = 'Scheduled';
+
+--  76: Find all seats that are currently available.
+SELECT * FROM Seat WHERE Availability = 1;
+
+--  77: Retrieve all payments made on '2025-03-01'.
+SELECT * FROM Payment WHERE PaymentDate = '2025-03-01';
+
+--  78: Display all flights arriving in 'Tokyo'.
+SELECT * FROM Flight WHERE Destination = 'Tokyo';
+
+--  79: Find all passengers born after '1990-01-01'.
+SELECT * FROM Passenger WHERE DOB > '1990-01-01';
+
+--- 80: List all flights operated by 'Boeing' aircraft.
+SELECT * FROM Flight WHERE AircraftID IN (SELECT AircraftID FROM Aircraft WHERE Manufacturer = 'Boeing');
+
+--  81: Retrieve the details of all bookings made by PassengerID 1.
+SELECT * FROM Booking WHERE PassengerID = 1;
+
+--  82: Display all crew members who are 'Pilots'.
+SELECT * FROM Crew WHERE Role = 'Pilot';
+
+--  83: Find all baggage checked-in for FlightID 5001.
+SELECT * FROM Baggage WHERE FlightID = 5001 AND Status = 'Checked-in';
+
+--  84: List all boarding passes for passengers with 'UK' nationality.
+SELECT * FROM BoardingPass WHERE PassengerID IN (SELECT PassengerID FROM Passenger WHERE Nationality = 'UK');
+
+--  85: Retrieve all security checks for FlightID 5002.
+SELECT * FROM SecurityCheck WHERE FlightID = 5002;
+
+-- 86: Display all meals with 'No nuts' special request.
+SELECT * FROM Meal WHERE SpecialRequest = 'No nuts';
+
+-- 87: Find all flights departing before '2025-03-20'.
+SELECT * FROM Flight WHERE DepartureTime < '2025-03-20';
+
+--  88: Retrieve the details of all aircraft manufactured by 'Airbus'.
+SELECT * FROM Aircraft WHERE Manufacturer = 'Airbus';
+A321 185 Airbus  2020
+
+
+--  89: Find all available seats on FlightID 1.
+SELECT * FROM Seat WHERE AircraftID = (SELECT AircraftID FROM Flight WHERE FlightID = 1) AND Availability = 1;
+
+--90: List all crew members assigned to flights operated by 'Delta Airlines'.
+SELECT * FROM Crew WHERE FlightID IN (SELECT FlightID FROM Flight WHERE AirlineID = (SELECT AirlineID FROM Airline WHERE Name = 'Delta Airlines'));
+
+-- 91: Retrieve all payments made by PassengerID 3.
+SELECT * FROM Payment WHERE PassengerID = 3;
+
+-- 92: Find all meals that are 'Gluten-Free'.
+SELECT * FROM Meal WHERE MealType = 'Gluten-Free';
+
+--  93: List all flights arriving before '2025-03-18'.
+SELECT * FROM Flight WHERE ArrivalTime < '2025-03-18';
+
+-- 94: Retrieve the details of all bookings made on '2025-03-05'.
+SELECT * FROM Booking WHERE BookingDate = '2025-03-05';
+
+--  95: Find all baggage with a weight greater than 20.0 kg.
+SELECT * FROM Baggage WHERE Weight > 20.0;
+
+--  96: List all passengers with a 'Pending' booking status.
+SELECT * FROM Passenger WHERE PassengerID IN (SELECT PassengerID FROM Booking WHERE Status = 'Pending');
+
+--  97: Retrieve the details of all flights operated by 'Emirates'.
+SELECT * FROM Flight WHERE AirlineID = (SELECT AirlineID FROM Airline WHERE Name = 'Emirates');
+
+--  98: Display all aircraft models manufactured in 2020.
+SELECT Model FROM Aircraft WHERE YearOfManufacture = 2020;
+
+--  99: Find all seats in 'Economy' class that are not available.
+SELECT * FROM Seat WHERE Class = 'Economy' AND Availability = 0;
+
+--  100: List all passengers who have made a payment using 'PayPal'.
+SELECT * FROM Passenger WHERE PassengerID IN (SELECT PassengerID FROM Payment WHERE PaymentMethod = 'PayPal');
+1994-06-06  P99001122   Brazil  NULL
+
+
+--- 101: List all payments, ordered by amount in descending order.
+SELECT * FROM Payment ORDER BY Amount DESC;
+
+-- 102: List all flights, ordered by departure time.
+SELECT * FROM Flight ORDER BY DepartureTime;
+
+--  103: List all airlines, ordered by name.
+SELECT * FROM Airline ORDER BY Name;
+
+-- 104: List the count of passengers grouped by nationality.
+SELECT Nationality, COUNT(*) AS PassengerCount FROM Passenger GROUP BY Nationality;
+
+-- 105: List the count of flights grouped by status.
+SELECT Status, COUNT(*) AS FlightCount FROM Flight GROUP BY Status;
+Output:/*
+Scheduled   15
+*/
+
+-- 106: List the total amount paid by each passenger.
+SELECT PassengerID, SUM(Amount) AS TotalAmountPaid FROM Payment GROUP BY PassengerID;
+
+-- 107: List the count of seats grouped by class.
+SELECT Class, COUNT(*) AS SeatCount FROM Seat GROUP BY Class;
+
+---108: List the count of baggage items grouped by status.
+SELECT Status, COUNT(*) AS BaggageCount FROM Baggage GROUP BY Status;
+
+--109: Join Passenger and Booking tables to list passengers with their booking status.
+SELECT Passenger.Name, Booking.Status FROM Passenger
+JOIN Booking ON Passenger.PassengerID = Booking.PassengerID;
+
+
+-- 110: Join Ticket and Flight tables to list tickets with their flight details.
+SELECT Ticket.TicketID, Flight.Source, Flight.Destination FROM Ticket
+JOIN Flight ON Ticket.FlightID = Flight.FlightID;
+
+-- 111: Join Crew and Flight tables to list crew members with their flight details.
+SELECT Crew.Name, Flight.Source, Flight.Destination FROM Crew
+JOIN Flight ON Crew.FlightID = Flight.FlightID;
+
+-- 112: List flights along with the names of the crew members assigned to them.
+SELECT Flight.FlightID, Crew.Name FROM Flight
+JOIN Crew ON Flight.FlightID = Crew.FlightID;
+
+-- 113: List the details of all bookings made by passengers born after '1990-01-01'.
+SELECT Booking.* FROM Booking
+JOIN Passenger ON Booking.PassengerID = Passenger.PassengerID
+WHERE Passenger.DOB > '1990-01-01';
+
+
+-- 114. Get the names of passengers and their corresponding flight destinations.
+SELECT Passenger.Name, Flight.Destination
+FROM Passenger
+JOIN Ticket ON Passenger.PassengerID = Ticket.PassengerID
+JOIN Flight ON Ticket.FlightID = Flight.FlightID;
+
+
+-- 115. List all flights along with the airline names.
+SELECT Flight.FlightID, Airline.Name
+FROM Flight
+JOIN Airline ON Flight.AirlineID = Airline.AirlineID;
+
+-- 116. Find all crew members assigned to a specific flight.
+SELECT Crew.Name, Crew.Role
+FROM Crew
+JOIN Flight ON Crew.FlightID = Flight.FlightID
+WHERE Flight.FlightID = 1;
+
+
+-- 117. List all baggage details along with the passenger names.
+SELECT Baggage.TagNumber, Passenger.Name, Baggage.Status
+FROM Baggage
+JOIN Passenger ON Baggage.PassengerID = Passenger.PassengerID;
+
+-- 118. Get the payment details along with passenger names.
+SELECT Payment.Amount, Passenger.Name, Payment.PaymentMethod
+FROM Payment
+JOIN Passenger ON Payment.PassengerID = Passenger.PassengerID;
+
+
+-- 119. Find all tickets along with the corresponding flight details.
+SELECT Ticket.TicketID, Flight.Source, Flight.Destination
+FROM Ticket
+JOIN Flight ON Ticket.FlightID = Flight.FlightID;
+
+
+-- 120. List all meals requested by passengers along with their flight details.
+SELECT Meal.MealType, Passenger.Name, Flight.Source, Flight.Destination
+FROM Meal
+JOIN Passenger ON Meal.PassengerID = Passenger.PassengerID
+JOIN Flight ON Meal.FlightID = Flight.FlightID;
+
+-- 121. Get the list of all available seats for a specific flight.
+SELECT Seat.SeatNumber, Seat.Class, Seat.Availability
+FROM Seat
+JOIN Aircraft ON Seat.AircraftID = Aircraft.AircraftID
+JOIN Flight ON Aircraft.AircraftID = Flight.AircraftID
+WHERE Flight.FlightID = 1;
+
+
+-- 122. Find all bookings along with passenger names and flight details.
+SELECT Booking.BookingID, Passenger.Name, Flight.Source, Flight.Destination
+FROM Booking
+JOIN Passenger ON Booking.PassengerID = Passenger.PassengerID
+JOIN Flight ON Booking.FlightID = Flight.FlightID;
+
+
+
+-- 123. Get the list of all passengers who have made payments.
+SELECT DISTINCT Passenger.Name, Payment.Amount
+FROM Payment
+JOIN Passenger ON Payment.PassengerID = Passenger.PassengerID;
+
+
+-- 124. Find all passengers who have checked in and their corresponding flight details.
+SELECT Passenger.Name, Flight.Source, Flight.Destination
+FROM CheckIn
+JOIN Passenger ON CheckIn.PassengerID = Passenger.PassengerID
+JOIN Flight ON CheckIn.FlightID = Flight.FlightID;
+
+-- 125. Get the list of all flights along with the crew members assigned to them.
+SELECT Flight.FlightID, Crew.Name, Crew.Role
+FROM Flight
+JOIN Crew ON Flight.FlightID = Crew.FlightID;
+
+
+-- 126. Find all passengers who have made bookings and their booking status.
+SELECT Passenger.Name, Booking.Status
+FROM Booking
+JOIN Passenger ON Booking.PassengerID = Passenger.PassengerID;
+
+
+-- 127. Get the list of all available seats for a specific aircraft model.
+SELECT Seat.SeatNumber, Seat.Class, Seat.Availability
+FROM Seat
+JOIN Aircraft ON Seat.AircraftID = Aircraft.AircraftID
+WHERE Aircraft.Model = 'Boeing 737';
+
+
+-- 128. Find all passengers who have lost baggage along with their flight details.
+SELECT Passenger.Name, Baggage.TagNumber, Flight.Source, Flight.Destination
+FROM Baggage
+JOIN Passenger ON Baggage.PassengerID = Passenger.PassengerID
+JOIN Flight ON Baggage.FlightID = Flight.FlightID
+WHERE Baggage.Status = 'Lost';
+
+
+-- 129. Get the list of all passengers who have booked flights and their payment details.
+SELECT Passenger.Name, Payment.Amount, Booking.Status
+FROM Booking
+JOIN Passenger ON Booking.PassengerID = Passenger.PassengerID
+JOIN Payment ON Passenger.PassengerID = Payment.PassengerID;
+
+
+-- 130. Get the names of passengers who have booked flights.
+SELECT Name 
+FROM Passenger 
+WHERE PassengerID IN (SELECT PassengerID FROM Booking);
+
+-- 131. Get the total amount paid by each passenger.
+SELECT Name, 
+       (SELECT SUM(Amount) 
+        FROM Payment 
+        WHERE PassengerID = Passenger.PassengerID) AS TotalPaid
+FROM Passenger;
+
+-- Output:
+-- Name               | TotalPaid
+-- -------------------|-----------
+-- John Doe          | 500.00
+-- Jane Smith        | 250.00
+-- Ahmed Ali         | 700.00
+-- Maria Gonzalez     | 300.00
+-- Chen Wei          | 450.00
+-- David Kim         | 600.00
+-- Sophie Lee        | 450.00
+-- Hassan Mohamed     | 800.00
+-- Laura Martinez     | 350.00
+-- Ivan Petrov       | 500.00
+-- Lisa Chan         | 650.00
+-- Peter Schmidt     | 700.00
+-- Carlos Silva      | 900.00
+-- Aisha Ahmed       | 400.00
+-- Franco Rossi      | 550.00
+
+-- 132. Find the flight details for a specific passenger (e.g., Jane Smith).
+SELECT FlightID, Source, Destination 
+FROM Flight 
+WHERE FlightID IN (SELECT FlightID FROM Booking WHERE PassengerID = (SELECT PassengerID FROM Passenger WHERE Name = 'Jane Smith'));
+
+
+-- 133. Find all passengers who have lost baggage.
+SELECT Name 
+FROM Passenger 
+WHERE PassengerID IN (SELECT PassengerID FROM Baggage WHERE Status = 'Lost');
+
+
+-- 134. Get the details of all flights that have been cancelled.
+SELECT FlightID, Source, Destination 
+FROM Flight 
+WHERE FlightID IN (SELECT FlightID FROM Booking WHERE Status = 'Cancelled');
+
+
+-- 135. Find the total number of seats available for each aircraft.
+SELECT AircraftID, 
+       (SELECT COUNT(*) 
+        FROM Seat 
+        WHERE AircraftID = Aircraft.AircraftID AND Availability = 1) AS AvailableSeats
+FROM Aircraft;
+
+
+-- 136. Get the names of passengers who have made payments for their tickets.
+SELECT Name 
+FROM Passenger 
+WHERE PassengerID IN (SELECT DISTINCT PassengerID FROM Payment);
+
+
+-- 137. Find the total weight of baggage for each passenger.
+SELECT Name, 
+       (SELECT SUM(Weight) 
+        FROM Baggage 
+        WHERE PassengerID = Passenger.PassengerID) AS TotalWeight
+FROM Passenger;
+
+
+-- 138. Get the names of passengers who have checked in for their flights.
+SELECT Name 
+FROM Passenger 
+WHERE PassengerID IN (SELECT PassengerID FROM CheckIn);
+
+
+-- 139. Find the details of the crew members assigned to a specific flight (e.g., FlightID 1).
+SELECT Name, Role 
+FROM Crew 
+WHERE FlightID IN (SELECT FlightID FROM Flight WHERE FlightID = 1);
+
+-- 140. Find the total number of bookings made by each passenger.
+SELECT Name, 
+       (SELECT COUNT(*) 
+        FROM Booking 
+        WHERE PassengerID = Passenger.PassengerID) AS TotalBookings
+FROM Passenger;
+
+
+-- 141. Get the details of all flights that have been booked by passengers from a specific country (e.g., USA).
+SELECT FlightID, Source, Destination 
+FROM Flight 
+WHERE FlightID IN (SELECT FlightID FROM Booking WHERE PassengerID IN (SELECT PassengerID FROM Passenger WHERE Nationality = 'USA'));
+
+
+-- 142. Find the total amount paid for tickets by passengers who have booked flights.
+SELECT Name, 
+       (SELECT SUM(Price) 
+        FROM Ticket 
+        WHERE PassengerID = Passenger.PassengerID) AS TotalTicketPrice
+FROM Passenger;
+
+
+-- 143. Get the details of all baggage for passengers who have made payments.
+SELECT TagNumber, Weight 
+FROM Baggage 
+WHERE PassengerID IN (SELECT PassengerID FROM Payment);
+
+-- 144. Get the names of passengers along with their payment amounts.
+SELECT Passenger.Name, Payment.Amount
+FROM Passenger
+JOIN Payment ON Passenger.PassengerID = Payment.PassengerID;
+-- 145. List all flights along with the corresponding aircraft models.
+SELECT Flight.FlightID, Aircraft.Model
+FROM Flight
+JOIN Aircraft ON Flight.AircraftID = Aircraft.AircraftID;
+
+
+ --146. Get the total number of tickets sold for each flight.
+SELECT Flight.FlightID, COUNT(Ticket.TicketID) AS TotalTicketsSold
+FROM Flight
+LEFT JOIN Ticket ON Flight.FlightID = Ticket.FlightID
+GROUP BY Flight.FlightID;
+
+
+
+-- 147. List all passengers who have lost baggage along with their baggage details.
+SELECT Passenger.Name, Baggage.TagNumber, Baggage.Weight
+FROM Baggage
+JOIN Passenger ON Baggage.PassengerID = Passenger.PassengerID
+WHERE Baggage.Status = 'Lost';
+
+
+-- 148. Get the details of all crew members along with the flights they are assigned to.
+SELECT Crew.Name, Crew.Role, Flight.Source, Flight.Destination
+FROM Crew
+JOIN Flight ON Crew.FlightID = Flight.FlightID;
+
+
+-- 149. Find all available seats for a specific aircraft model (e.g., Boeing 737).
+SELECT Seat.SeatNumber, Seat.Class
+FROM Seat
+JOIN Aircraft ON Seat.AircraftID = Aircraft.AircraftID
+WHERE Aircraft.Model = 'Boeing 737' AND Seat.Availability = 1;
+
+
+-- 150. Get the total payment amount made by each passenger.
+SELECT Passenger.Name, SUM(Payment.Amount) AS TotalPayment
+FROM Payment
+JOIN Passenger ON Payment.PassengerID = Passenger.PassengerID
+GROUP BY Passenger.Name;
